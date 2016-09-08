@@ -1,3 +1,5 @@
+/* this class is for schema extraction and data loading of rdf data in nt format */
+
 package classes;
 
 import java.io.FileReader;
@@ -50,8 +52,9 @@ public class SchemaExtractor implements Serializable {
 	@SuppressWarnings("unchecked")
 	public void fromSemData(String path, String del, String dsName, String dsIRI) throws IOException, ClassNotFoundException {
 
-		SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark://139.18.2.34:3077");
-		//SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark://139.18.2.34:3077").set("spark.executor.memory", "60g").set("spark.rdd.compress","true").set("spark.storage.memoryFraction","1").set("spark.core.connection.ack.wait.timeout","600").set("spark.akka.frameSize","50");
+		SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark key"); // "spark-key" you get after you run the master
+		// use the following instantiation instead if you run the code in single machine node
+		// SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark://139.18.2.34:3077").set("spark.executor.memory", "60g").set("spark.rdd.compress","true").set("spark.storage.memoryFraction","1").set("spark.core.connection.ack.wait.timeout","600").set("spark.akka.frameSize","50");
 		//		.setJars(new String[]{"/mnt/SparkServlet.jar"});
 		
 		JavaSparkContext ctx = new JavaSparkContext(sparkConf); // ctx.addJar("/mnt/SparkServlet.jar");
@@ -351,10 +354,8 @@ public class SchemaExtractor implements Serializable {
 		    		// 8.7 Create an RDD by applying a schema to the RDD
 					DataFrame typeDataFrame = sqlContext.createDataFrame(returnValues, schema);
 					
-					// 8.8 Save to Parquet table
-					typeDataFrame.write().parquet("hdfs://akswnc5.informatik.uni-leipzig.de:54310/output/Parquets/" + replaceInType(key)); // or "/home/hadoop/tables/"
-					//typeDataFrame.write().parquet("/mnt/output/Parquets/" + replaceInType(key)); // or "/home/hadoop/tables/"
-					//typeDataFrame.write().parquet("hdfs://akswnc4.informatik.uni-leipzig.de:54310/output/Parquets/" + replaceInType(key));
+					// 8.8 Save to Parquet table (replace host:port and path/to/output)
+					typeDataFrame.write().parquet("hdfs://host:port/path/to/output/" + replaceInType(key)); // or "/home/hadoop/tables/"
 					
 				}
 	        //}
