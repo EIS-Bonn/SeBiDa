@@ -1,0 +1,1 @@
+Loader replaces the SchemaExtractor
