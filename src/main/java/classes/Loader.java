@@ -12,15 +12,14 @@ import java.text.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -34,6 +33,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.opencsv.CSVReader;
 
+import org.apache.spark.sql.DataFrame;
+
 public class Loader implements Serializable {
 
     public ArrayList<String> fromCSV(String path, String del) throws IOException {
@@ -46,15 +47,27 @@ public class Loader implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public void fromSemData(String input_path, final String output_path, String dsName, String dsIRI) throws IOException, ClassNotFoundException {
+    public void fromSemData(String input_path, final String output_path, String dsName, String dsIRI, String master) throws IOException, ClassNotFoundException {
 
-        // Change local to Spark ID if in a stand alone cluster deployment
-        SparkSession spark = SparkSession.builder().appName("SeBiDa - Semantic Data Loading").config("spark.master", "local[8]").getOrCreate();
+        //SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark://139.18.2.34:3077");
+
+        //SparkSession spark = SparkSession.builder().appName("SeBiDa - Semantic Data Loading").config("spark.master", "spark://139.18.2.34:3077").getOrCreate();
+        //SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("local[8]");
+        //SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster("spark://139.18.2.34:3077").set("spark.executor.memory", "60g").set("spark.rdd.compress","true").set("spark.storage.memoryFraction","1").set("spark.core.connection.ack.wait.timeout","600").set("spark.akka.frameSize","50");
+        //		.setJars(new String[]{"/mnt/SparkServlet.jar"});
+
+        //JavaSparkContext ctx = new JavaSparkContext(sparkConf); // ctx.addJar("/mnt/SparkServlet.jar");
+
+        SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL").setMaster(master);
+        JavaSparkContext ctx = new JavaSparkContext(sparkConf);
 
         try {
 
+            SQLContext sqlContext = new SQLContext(ctx.sc());
+
             // 1. Read text file
-            JavaRDD<String> lines = spark.read().textFile(input_path).toJavaRDD();
+            /*JavaRDD<String> lines = spark.read().textFile(input_path).toJavaRDD();*/
+            JavaRDD<String> lines = ctx.textFile(input_path);
 
             // 2. Map lines to Triple objects
             @SuppressWarnings("resource")
@@ -77,9 +90,13 @@ public class Loader implements Serializable {
                     else {
                         String subject = replaceInValue(removeTagSymbol(parts.get(0))); // MEASURE removeTagSymbol() time
                         String property = replaceInColumn(removeTagSymbol(parts.get(1)));
-                        String object = reverse(replaceInValue(removeTagSymbol(parts.get(2))));
+                        String object = replaceInValue(removeTagSymbol(parts.get(2)));
+                        String type = replaceInValue(removeTagSymbol(parts.get(3))); // Either there is a type (xslt) or not (.)
 
-                        triple = new Triple(subject, property, object);
+                        String objectAndType = (parts.size() == 5) ? (object + type) : object;
+                        objectAndType = reverse(objectAndType);
+
+                        triple = new Triple(subject, property, objectAndType);
                     }
 
                     return triple;
@@ -178,7 +195,7 @@ public class Loader implements Serializable {
                 JavaRDD<String> cols = rddByKey.flatMap(new FlatMapFunction<Tuple2<String,Iterable<Tuple2<String,String>>>,String>(){
 
                     @Override
-                    public Iterator<String> call(Tuple2<String, Iterable<Tuple2<String, String>>> i) throws Exception {
+                    public Iterable<String> call(Tuple2<String, Iterable<Tuple2<String, String>>> i) throws Exception {
                         LinkedHashMap<String, Object> po = new LinkedHashMap<String, Object>(); // a hashamp (that keeps order) to store all type's columns
 
                         // 8.2.1 Iterate through all (p,o) and collect the columns (update incrementally the hashmap)
@@ -213,7 +230,7 @@ public class Loader implements Serializable {
                             if (po.containsKey(property) && !po.containsKey(property + "**")) {
                                 po.remove(property);
                                 property = property + "**";
-                                System.out.println("Property: " + property);
+                                //System.out.println("Property: " + property);
                             } else if (po.containsKey(property + "**")) {
                                 property = property + "**";
                             }
@@ -224,7 +241,8 @@ public class Loader implements Serializable {
                         // 8.2.2 At last, add the id column
                         po.put("id", "");
 
-                        return po.keySet().iterator();
+                        /*return po.keySet().iterator();*/
+                        return po.keySet();
                     }
                 });
 
@@ -336,7 +354,7 @@ public class Loader implements Serializable {
                                 newobject = Boolean.parseBoolean(object.replace("^^www.w3.org/2001/XMLSchema#boolean","").replace("\"",""));
                                 po.put(property, newobject);
                             } else if(readColumns.contains(property + "--TTS")) {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                 newobject = java.sql.Timestamp.valueOf(object.replace("^^www.w3.org/2001/XMLSchema#dateTime","").replace("\"","").replace("T"," "));
                                 po.put(property, newobject);
                             } else if(readColumns.contains(property + "--TAD")) {
@@ -367,7 +385,7 @@ public class Loader implements Serializable {
                                 String[] arr = null;
                                 newobject = object.replace("**","").replace("\"","");
                                 if(po.get(property) != null){
-                                    System.out.println("TYPE (" + po.get(property) + "): ");
+                                    //System.out.println("TYPE (" + po.get(property) + "): ");
 
                                     arr = (String[]) po.get(property);
                                     temparr = new ArrayList<String>(Arrays.asList(arr));
@@ -409,18 +427,25 @@ public class Loader implements Serializable {
                 //System.out.println("schema: " + schema);
 
                 // 8.7 Create an RDD by applying a schema to the RDD
-                Dataset typeDataFrame = spark.createDataFrame(returnValues, schema);
+                /*Dataset typeDataFrame = spark.createDataFrame(returnValues, schema);*/
+                DataFrame typeDataFrame = sqlContext.createDataFrame(returnValues, schema);
 
                 // 8.8 Save to Parquet table
                 typeDataFrame.write().parquet(output_path + replaceInType(key));
+                //"hdfs://akswnc5.informatik.uni-leipzig.de:54310/output/tables/" + replaceInType(key)); // or "/home/hadoop/tables/"
+                //typeDataFrame.write().parquet("/home/mmami/Documents/SDL/output/" + replaceInType(key)); // or "/home/hadoop/tables/"
             }
             //}
 
-            spark.stop();
+            //spark.stop();
+
+            ctx.close();
 
         } catch (Exception ex) {
             System.out.println("SOMETHING WENT WRONG..." + ex.getMessage());
-            spark.stop();
+            //spark.stop();
+
+            ctx.close();
         }
     }
 
@@ -439,7 +464,8 @@ public class Loader implements Serializable {
             };
         });
 
-        return a.values().flatMap(tuples -> tuples.iterator());
+        /*return a.values().flatMap(tuples -> tuples.iterator());*/
+        return a.values().flatMap(tuples -> tuples);
     }
 
     // Helping methods
