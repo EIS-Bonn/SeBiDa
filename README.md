@@ -1,5 +1,5 @@
 # SeBiDa
-Hi, in this repo you find (gradually) the code of SeBiDA. In its core, SeBiDa contains two components: (1) is the Non-Semantic Loading, which in turns conatains a Semantic Lifting component, and (2) Semantic Data Loading. 
+Hi, in this repo you find (gradually) the code of SeBiDA. In its core, SeBiDa contains two components: (1) is the Non-Semantic Loading, which in turn conatains a Semantic Lifting component, and (2) Semantic Data Loading. 
 
 As it is the main novelty of SeBiDa, we provide, for now, only the code of Semantic-Loading Loading. The other components may be added in the future.
 
