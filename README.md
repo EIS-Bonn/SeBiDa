@@ -1,13 +1,13 @@
 # SeBiDa
-Hi, in this repo you find (gradually) the code of SeBiDA. In its core, SeBiDa contains two components: (1) is the Non-Semantic Loading, which in turn conatains a Semantic Lifting component, and (2) Semantic Data Loading. 
+SeBiDa is a hybrid Semantic and Non-Semantic distributed query engine built using [Apache Spark](http://spark.apache.org). In its core, SeBiDa contains three components: (1) is the Non-Semantic Loading, which in turn conatains a Semantic Lifting component, (2) Semantic Data Loading, and (3) Querying component.
 
-As it is the main novelty of SeBiDa, we provide, for now, only the code of Semantic Data Loading. The other components may be added in the future.
+In this repo you find (gradually) the code of SeBiDA. As it is the main novelty of SeBiDa, we provide, for now, only the code of Semantic Data Loading. The other components may be added in the future.
 
-[Apache Spark](http://spark.apache.org) is used for both Semantic and Non-Semantic Loading, and for the querying.
+Apache Spark is used for both Semantic and Non-Semantic Loading, and for the querying.
 
 Semantic Loading
 ---
-It reads an RDF graph as input (currently supporting NT files) and generats tables in Apache Parquet tabular format. SeBiDa suggests an RDF-class-based partitioning scheme by which RDF triples are partioned according to the classes they belong to.
+It reads an RDF graph as input (currently supporting NT files) and generats tables in Apache Parquet tabular format. SeBiDa suggests an RDF-class-based partitioning scheme by which RDF instanes are partioned according to the classes they belong to.
 An RDF instance with more than class (rdf:type) is saved into one table corresponding to one type (now chosen using a lexicographical order but class hierarchy will be considered in the future). The choses table will contain "reference columns" (of type boolean) that indicated if a particular tuple of the table (RDF instance) is "also of another type". Here is an example:
 <br/>
 <img src="https://github.com/EIS-Bonn/SeBiDa/raw/master/SeBiDa_classes_example.png" width="70%"/>
