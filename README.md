@@ -1,7 +1,7 @@
 # SeBiDa
 Hi, in this repo you find (gradually) the code of SeBiDA. In its core, SeBiDa contains two components: (1) is the Non-Semantic Loading, which in turn conatains a Semantic Lifting component, and (2) Semantic Data Loading. 
 
-As it is the main novelty of SeBiDa, we provide, for now, only the code of Semantic-Loading Loading. The other components may be added in the future.
+As it is the main novelty of SeBiDa, we provide, for now, only the code of Semantic Data Loading. The other components may be added in the future.
 
 [Apache Spark](http://spark.apache.org) is used for both Semantic and Non-Semantic Loading, and for the querying.
 
