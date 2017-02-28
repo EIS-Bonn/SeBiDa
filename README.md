@@ -9,6 +9,7 @@ Semantic Loading
 ---
 It reads an RDF graph as input (currently supporting NT files) and generats tables in Apache Parquet tabular format. SeBiDa suggests an RDF-class-based partitioning scheme by which RDF triples are partioned according to the classes they belong to.
 An RDF instance with more than class (rdf:type) is saved into one table corresponding to one type (now chosen using a lexicographical order but class hierarchy will be considered in the future). The choses table will contain "reference columns" (of type boolean) that indicated if a particular tuple of the table (RDF instance) is "also of another type". Here is an example:
+<br/>
 <img src="https://github.com/EIS-Bonn/SeBiDa/raw/master/SeBiDa_classes_example.png" width="70%"/>
 
 Queries, therefore, need to be rewritten under the hood, so these scattred data can be collected.
@@ -18,7 +19,7 @@ Usage (RDF2Parquet)
 ---
 You could either package the code using Maven for example or use the pre-built JAR provided [here](https://sourceforge.net/projects/sebida/files/latest/download?source=files).
 
-We ship this component for now as an undependent tool, named RDF2Parquet, as it undependently converts RDF files to Parquet tables following the scheme explained above. 
+We ship this component for now as an undependent tool, named RDF2Parquet, as it undependently converts RDF files into Parquet tables following the partitioning scheme explained above.
 
 We used for our evaluation the [Standalone Mode](http://spark.apache.org/docs/latest/spark-standalone.html). As the docs page above explains, you simply need to start your master (``./sbin/start-master.sh``), which returns you the master-spark-URL (check the logs). Then you start the workers (``./sbin/start-slave.sh <master-spark-URL>``).
 
