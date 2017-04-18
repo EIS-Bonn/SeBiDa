@@ -40,4 +40,4 @@ Evaluation
 ---
 For benchmarking, we used BSBM benchmark data generator (http://wifo5-03.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/spec/BenchmarkRules/#datagenerator) and its 12 queries on SQL. For these latter, we actually didn't use the exact all SQL queries but rather created our own SQL conversion from BSBM SPARQL queries. This is because of the limited syntax of Spark SQL comparing to the standard SQL syntax used in BSBM standard. The rewritten SQL queries will published soon.
 
-For more information, please contact me at: mami@cs.uni-bonn.de, and I'll be happy to assist.
+For more information, please contact me at: mami@cs.uni-bonn.de, and I'll be glad to assist. File a Github issue for any faced issues or to suggest new features.
