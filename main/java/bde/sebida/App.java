@@ -41,6 +41,6 @@ public class App
 
         // Extract schema from and load semantic data
         Loader se = new Loader();
-        se.fromSemData(input_path, output_path, dataset_name, dataset_URI, master);
+        se.fromSemData(input_path, output_path, master);
     }
 }
